@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { User } from "@repo/db";
-import { sendMessage, LEGACY_TOPICS, UserCreatedMessage } from "@repo/kafka";
+import { kafkaProducer, TOPICS, UserCreatedPayload } from "@repo/kafka";
 
 export interface IUser {
   id: string;
@@ -68,15 +68,19 @@ export const userService = {
 
     // Send Kafka message for user creation notification
     try {
-      const userCreatedMessage: UserCreatedMessage = {
+      const userCreatedPayload: UserCreatedPayload = {
         userId: newUser._id.toString(),
         email: newUser.email,
         name: newUser.name,
         role: newUser.role,
-        createdAt: new Date().toISOString(),
       };
 
-      await sendMessage(LEGACY_TOPICS.USER_CREATED, "USER_CREATED", userCreatedMessage);
+      await kafkaProducer.send(
+        TOPICS.USER.CREATED,
+        "USER_CREATED",
+        userCreatedPayload,
+        "users-service"
+      );
       console.log(`📤 User created event sent for: ${newUser.email}`);
     } catch (kafkaError) {
       console.error("Failed to send Kafka message:", kafkaError);

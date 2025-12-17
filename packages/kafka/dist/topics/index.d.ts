@@ -15,11 +15,6 @@ export declare const TOPICS: {
         readonly GENERAL: "dlq.general.v1";
     };
 };
-export declare const LEGACY_TOPICS: {
-    readonly USER_CREATED: "user-created";
-    readonly USER_UPDATED: "user-updated";
-    readonly USER_DELETED: "user-deleted";
-};
 export type UserTopic = (typeof TOPICS.USER)[keyof typeof TOPICS.USER];
 export type TaskTopic = (typeof TOPICS.TASK)[keyof typeof TOPICS.TASK];
 export type DLQTopic = (typeof TOPICS.DLQ)[keyof typeof TOPICS.DLQ];

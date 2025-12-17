@@ -17,16 +17,8 @@ export const TOPICS = {
   },
 } as const;
 
-// Legacy topic names for backward compatibility
-export const LEGACY_TOPICS = {
-  USER_CREATED: "user-created",
-  USER_UPDATED: "user-updated",
-  USER_DELETED: "user-deleted",
-} as const;
-
 // Type-safe topic name types
 export type UserTopic = (typeof TOPICS.USER)[keyof typeof TOPICS.USER];
 export type TaskTopic = (typeof TOPICS.TASK)[keyof typeof TOPICS.TASK];
 export type DLQTopic = (typeof TOPICS.DLQ)[keyof typeof TOPICS.DLQ];
 export type TopicName = UserTopic | TaskTopic | DLQTopic;
-

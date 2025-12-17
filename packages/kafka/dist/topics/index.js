@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LEGACY_TOPICS = exports.TOPICS = void 0;
+exports.TOPICS = void 0;
 // Topic definitions with versioning support for future compatibility
 exports.TOPICS = {
     USER: {
@@ -18,10 +18,4 @@ exports.TOPICS = {
         NOTIFICATION: "dlq.notification.v1",
         GENERAL: "dlq.general.v1",
     },
-};
-// Legacy topic names for backward compatibility
-exports.LEGACY_TOPICS = {
-    USER_CREATED: "user-created",
-    USER_UPDATED: "user-updated",
-    USER_DELETED: "user-deleted",
 };
