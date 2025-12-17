@@ -1,25 +1,68 @@
+// Main exports - organized by module
+export { kafkaConfig } from "./config/kafka.config";
+export type { KafkaEnvironmentConfig } from "./config/kafka.config";
+
+export { TOPICS, LEGACY_TOPICS } from "./topics";
+export type { TopicName, UserTopic, TaskTopic, DLQTopic } from "./topics";
+
+export {
+  kafkaProducer,
+  kafkaConsumerManager,
+  KafkaProducer,
+  KafkaConsumerManager,
+} from "./core";
+export type { MessageHandler, ConsumerOptions } from "./core";
+
+export {
+  createMessage,
+  isValidKafkaMessage,
+} from "./types/messages";
+
+export type {
+  KafkaMessage,
+  BaseKafkaMessage,
+  MessageMetadata,
+  UserCreatedPayload,
+  UserUpdatedPayload,
+  UserDeletedPayload,
+  TaskCreatedPayload,
+  TaskUpdatedPayload,
+  TaskCompletedPayload,
+  DLQPayload,
+} from "./types/messages";
+
+// Re-export kafkajs types that consumers might need
+export { logLevel } from "kafkajs";
+export type { Producer, Consumer } from "kafkajs";
+
+// ============================================
+// BACKWARD COMPATIBILITY LAYER
+// These exports maintain compatibility with existing code
+// TODO: Migrate consumers to use new API and remove this section
+// ============================================
+
 import { Kafka, Producer, Consumer, logLevel } from "kafkajs";
+import { kafkaConfig } from "./config/kafka.config";
+import { kafkaProducer } from "./core/producer";
+import { kafkaConsumerManager, MessageHandler } from "./core/consumer";
+import { KafkaMessage, createMessage } from "./types/messages";
 
-// Kafka configuration
-const KAFKA_BROKERS = process.env.KAFKA_BROKERS?.split(",") || ["localhost:9092"];
-const KAFKA_CLIENT_ID = process.env.KAFKA_CLIENT_ID || "monorepo-grpc";
-
-// Create Kafka instance
+// Legacy kafka instance (avoid using directly)
 const kafka = new Kafka({
-  clientId: KAFKA_CLIENT_ID,
-  brokers: KAFKA_BROKERS,
-  logLevel: logLevel.ERROR,
+  clientId: kafkaConfig.clientId,
+  brokers: kafkaConfig.brokers,
+  logLevel: kafkaConfig.logLevel,
 });
 
-// Topic names
-export const TOPICS = {
+// Legacy topic names for backward compatibility
+const LEGACY_TOPIC_NAMES = {
   USER_CREATED: "user-created",
-  USER_UPDATED: "user-updated",
+  USER_UPDATED: "user-updated", 
   USER_DELETED: "user-deleted",
 } as const;
 
-// Message types
-export interface UserCreatedMessage {
+// Legacy message type (use UserCreatedPayload instead)
+interface UserCreatedMessage {
   userId: string;
   email: string;
   name: string;
@@ -27,47 +70,38 @@ export interface UserCreatedMessage {
   createdAt: string;
 }
 
-export interface KafkaMessage<T = unknown> {
-  event: string;
-  data: T;
-  timestamp: string;
-}
+// Legacy producer functions
+let legacyProducer: Producer | null = null;
 
-// Producer singleton
-let producer: Producer | null = null;
-
-export async function getProducer(): Promise<Producer> {
-  if (!producer) {
-    producer = kafka.producer();
-    await producer.connect();
-    console.log("✅ Kafka producer connected");
+async function getProducer(): Promise<Producer> {
+  if (!legacyProducer) {
+    legacyProducer = kafka.producer();
+    await legacyProducer.connect();
+    console.log("✅ Kafka producer connected (legacy)");
   }
-  return producer;
+  return legacyProducer;
 }
 
-export async function disconnectProducer(): Promise<void> {
-  if (producer) {
-    await producer.disconnect();
-    producer = null;
-    console.log("Kafka producer disconnected");
+async function disconnectProducer(): Promise<void> {
+  if (legacyProducer) {
+    await legacyProducer.disconnect();
+    legacyProducer = null;
+    console.log("Kafka producer disconnected (legacy)");
   }
+  // Also disconnect new producer
+  await kafkaProducer.disconnect();
 }
 
-// Send message to topic
-export async function sendMessage<T>(
+async function sendMessage<T>(
   topic: string,
   event: string,
   data: T
 ): Promise<void> {
-  const kafkaProducer = await getProducer();
-  
-  const message: KafkaMessage<T> = {
-    event,
-    data,
-    timestamp: new Date().toISOString(),
-  };
+  const producer = await getProducer();
 
-  await kafkaProducer.send({
+  const message: KafkaMessage<T> = createMessage(event, data, "legacy-producer");
+
+  await producer.send({
     topic,
     messages: [
       {
@@ -80,16 +114,15 @@ export async function sendMessage<T>(
   console.log(`📤 Kafka message sent to topic: ${topic}, event: ${event}`);
 }
 
-// Consumer creation
-export async function createConsumer(groupId: string): Promise<Consumer> {
+// Legacy consumer functions
+async function createConsumer(groupId: string): Promise<Consumer> {
   const consumer = kafka.consumer({ groupId });
   await consumer.connect();
   console.log(`✅ Kafka consumer connected (group: ${groupId})`);
   return consumer;
 }
 
-// Subscribe and consume messages
-export async function subscribeToTopic(
+async function subscribeToTopic(
   consumer: Consumer,
   topic: string,
   handler: (message: KafkaMessage) => Promise<void>
@@ -112,5 +145,19 @@ export async function subscribeToTopic(
   });
 }
 
-export { kafka, Producer, Consumer };
+// Legacy exports (deprecated - use new API)
+export {
+  kafka,
+  getProducer,
+  disconnectProducer,
+  sendMessage,
+  createConsumer,
+  subscribeToTopic,
+  LEGACY_TOPIC_NAMES as TOPICS_LEGACY,
+};
 
+// Re-export legacy TOPICS constant for backward compatibility
+export { LEGACY_TOPIC_NAMES as TOPICS_V1 };
+
+// Legacy type export
+export type { UserCreatedMessage };

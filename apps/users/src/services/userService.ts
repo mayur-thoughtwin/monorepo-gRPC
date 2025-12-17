@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { User } from "@repo/db";
-import { sendMessage, TOPICS, UserCreatedMessage } from "@repo/kafka";
+import { sendMessage, LEGACY_TOPICS, UserCreatedMessage } from "@repo/kafka";
 
 export interface IUser {
   id: string;
@@ -76,7 +76,7 @@ export const userService = {
         createdAt: new Date().toISOString(),
       };
 
-      await sendMessage(TOPICS.USER_CREATED, "USER_CREATED", userCreatedMessage);
+      await sendMessage(LEGACY_TOPICS.USER_CREATED, "USER_CREATED", userCreatedMessage);
       console.log(`📤 User created event sent for: ${newUser.email}`);
     } catch (kafkaError) {
       console.error("Failed to send Kafka message:", kafkaError);

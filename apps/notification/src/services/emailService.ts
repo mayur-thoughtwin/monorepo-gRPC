@@ -1,103 +1,149 @@
-import nodemailer from "nodemailer";
-import dotenv from "dotenv";
+import nodemailer, { Transporter } from "nodemailer";
+import { emailConfig } from "../config/email.config";
+import { welcomeTemplate } from "../templates/welcome.template";
+import { userUpdatedTemplate, UserUpdatedTemplateData } from "../templates/user-updated.template";
 
-dotenv.config();
+interface SendMailOptions {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+}
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER || "tempthoughtwin@gmail.com",
-    pass: process.env.EMAIL_PASS || "bmrf njdq vyos jojv",
-  },
-});
+interface EmailResult {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}
 
+class EmailService {
+  private transporter: Transporter;
+  private isReady = false;
+
+  constructor() {
+    this.transporter = nodemailer.createTransport({
+      service: emailConfig.service,
+      auth: {
+        user: emailConfig.user,
+        pass: emailConfig.password,
+      },
+      pool: true, // Use connection pooling for better performance
+      maxConnections: emailConfig.pool.maxConnections,
+      rateDelta: emailConfig.pool.rateDelta,
+      rateLimit: emailConfig.pool.rateLimit,
+    });
+  }
+
+  async initialize(): Promise<void> {
+    try {
+      await this.transporter.verify();
+      this.isReady = true;
+      console.log("✅ Email service ready");
+    } catch (error) {
+      console.error("❌ Email service initialization failed:", error);
+      // Don't throw - allow service to start even if email isn't working
+      this.isReady = false;
+    }
+  }
+
+  private async sendEmail(options: SendMailOptions): Promise<EmailResult> {
+    try {
+      const info = await this.transporter.sendMail({
+        from: `"${emailConfig.fromName}" <${emailConfig.user}>`,
+        to: options.to,
+        subject: options.subject,
+        text: options.text,
+        html: options.html,
+      });
+
+      console.log(`📧 Email sent: ${info.messageId} to ${options.to}`);
+      return { success: true, messageId: info.messageId };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error(`❌ Failed to send email to ${options.to}:`, errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  async sendWelcomeEmail(email: string, name: string): Promise<boolean> {
+    const data = { email, name };
+    const content = welcomeTemplate.getContent(data);
+
+    const result = await this.sendEmail({
+      to: email,
+      subject: content.subject,
+      text: content.text,
+      html: content.html,
+    });
+
+    return result.success;
+  }
+
+  async sendUserUpdatedEmail(
+    email: string,
+    name: string,
+    changes: string[],
+    updatedAt: string
+  ): Promise<boolean> {
+    const data: UserUpdatedTemplateData = { email, name, changes, updatedAt };
+    const content = userUpdatedTemplate.getContent(data);
+
+    const result = await this.sendEmail({
+      to: email,
+      subject: content.subject,
+      text: content.text,
+      html: content.html,
+    });
+
+    return result.success;
+  }
+
+  // Health check for monitoring
+  async healthCheck(): Promise<{ healthy: boolean; message: string }> {
+    try {
+      await this.transporter.verify();
+      return { healthy: true, message: "Email service is healthy" };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      return { healthy: false, message: errorMessage };
+    }
+  }
+
+  getStatus(): { ready: boolean } {
+    return { ready: this.isReady };
+  }
+}
+
+// Singleton instance
+export const emailService = new EmailService();
+
+// Legacy export for backward compatibility
+export const sendWelcomeEmail = async (email: string, name: string): Promise<boolean> => {
+  return emailService.sendWelcomeEmail(email, name);
+};
+
+// Legacy sendEmail export
 export const sendEmail = async (options: {
   html?: string;
   to: string;
   subject: string;
   text: string;
-}) => {
-  try {
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: options.to,
-      subject: options.subject,
-      text: options.text,
-      html: options.html,
-    });
-    console.log("Email sent:", info.response);
-  } catch (error) {
-    console.error("Error sending email:", error);
-    throw error;
-  }
-};
-
-export const sendWelcomeEmail = async (email: string, name: string) => {
-  const subject = "🎉 Welcome to MonoRepo gRPC App!";
-
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-        .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
-        .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>Welcome, ${name}! 🚀</h1>
-        </div>
-        <div class="content">
-          <p>Hi <strong>${name}</strong>,</p>
-          <p>Thank you for creating an account with us! We're excited to have you on board.</p>
-          <p>Your account has been successfully created and you're all set to start using our platform.</p>
-          <p>Here's what you can do next:</p>
-          <ul>
-            <li>Complete your profile</li>
-            <li>Explore our features</li>
-            <li>Start creating tasks</li>
-          </ul>
-          <p>If you have any questions, feel free to reach out to our support team.</p>
-          <p>Best regards,<br>The MonoRepo gRPC Team</p>
-        </div>
-        <div class="footer">
-          <p>This email was sent to ${email}</p>
-          <p>&copy; ${new Date().getFullYear()} MonoRepo gRPC App. All rights reserved.</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-  const text = `
-    Welcome, ${name}!
-    
-    Thank you for creating an account with us! We're excited to have you on board.
-    
-    Your account has been successfully created and you're all set to start using our platform.
-    
-    Here's what you can do next:
-    - Complete your profile
-    - Explore our features
-    - Start creating tasks
-    
-    If you have any questions, feel free to reach out to our support team.
-    
-    Best regards,
-    The MonoRepo gRPC Team
-  `;
-
-  await sendEmail({
-    to: email,
-    subject,
-    text,
-    html,
+}): Promise<void> => {
+  const transporter = nodemailer.createTransport({
+    service: emailConfig.service,
+    auth: {
+      user: emailConfig.user,
+      pass: emailConfig.password,
+    },
   });
-};
 
+  await transporter.sendMail({
+    from: emailConfig.user,
+    to: options.to,
+    subject: options.subject,
+    text: options.text,
+    html: options.html,
+  });
+  
+  console.log("Email sent to:", options.to);
+};
