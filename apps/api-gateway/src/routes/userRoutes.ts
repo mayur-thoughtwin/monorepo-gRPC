@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { userController } from "../controllers/userController";
 import { authenticateToken } from "../middleware/authMiddleware";
-import { validate, getUserParamsSchema } from "../validation";
+import { validate, getUsersParamsSchema } from "../validation";
 
 const router = Router();
 
-// Protected route - requires authentication and validation
-router.get("/:id", authenticateToken, validate(getUserParamsSchema), userController.getUser);
+// Protected routes - requires authentication
+// GET /users - Get all non-admin users
+// GET /users/:id - Get single user by ID
+router.get("/{:id}", authenticateToken, validate(getUsersParamsSchema), userController.getUsers);
 
 export default router;

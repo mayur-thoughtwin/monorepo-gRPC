@@ -1,17 +1,23 @@
 import { Request, Response } from "express";
 import { userService } from "../services/userService";
-import { GetUserParamsInput } from "../validation";
 
 export const userController = {
-  getUser: async (req: Request, res: Response) => {
+  getUsers: async (req: Request, res: Response) => {
     try {
-      // Params are already validated by zod middleware
-      const { id } = req.params as GetUserParamsInput["params"];
-      const user = await userService.getUser(id);
-      res.json(user);
+      const { id } = req.params;
+
+      // If ID is provided, get single user
+      if (id) {
+        const user = await userService.getUser(id);
+        return res.json(user);
+      }
+
+      // If no ID, get all non-admin users
+      const result = await userService.getUsers();
+      return res.json(result.users);
     } catch (error) {
-      console.error("Get user error:", error);
-      res.status(500).json({ error: "Failed to fetch user" });
+      console.error("Get user(s) error:", error);
+      res.status(500).json({ error: "Failed to fetch user(s)" });
     }
   },
 };

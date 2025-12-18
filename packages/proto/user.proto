@@ -4,6 +4,7 @@ package user;
 
 service UserService {
   rpc GetUser (GetUserRequest) returns (GetUserResponse);
+  rpc GetUsers (GetUsersRequest) returns (GetUsersResponse);
   rpc Register (RegisterRequest) returns (RegisterResponse);
   rpc Login (LoginRequest) returns (LoginResponse);
 }
@@ -17,6 +18,14 @@ message GetUserResponse {
   string name = 2;
   string email = 3;
   string role = 4;
+}
+
+message GetUsersRequest {
+  // Empty - will return all non-admin users
+}
+
+message GetUsersResponse {
+  repeated GetUserResponse users = 1;
 }
 
 message RegisterRequest {

@@ -3,11 +3,13 @@ export {
   registerSchema,
   loginSchema,
   getUserParamsSchema,
+  getUsersParamsSchema,
   UserRole,
   type UserRoleType,
   type RegisterInput,
   type LoginInput,
   type GetUserParamsInput,
+  type GetUsersParamsInput,
 } from "./user.schema";
 
 // Task schemas

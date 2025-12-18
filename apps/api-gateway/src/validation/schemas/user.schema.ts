@@ -39,7 +39,7 @@ export const loginSchema = z.object({
   }),
 });
 
-// Get user by ID params schema
+// Get user by ID params schema (ID required)
 export const getUserParamsSchema = z.object({
   params: z.object({
     id: z
@@ -48,7 +48,18 @@ export const getUserParamsSchema = z.object({
   }),
 });
 
+// Get user(s) params schema (ID optional - for combined get single/all users endpoint)
+export const getUsersParamsSchema = z.object({
+  params: z.object({
+    id: z
+      .string()
+      .regex(/^[a-fA-F0-9]{24}$/, "Invalid user ID format (must be a valid MongoDB ObjectId)")
+      .optional(),
+  }),
+});
+
 // Export inferred types
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type GetUserParamsInput = z.infer<typeof getUserParamsSchema>;
+export type GetUsersParamsInput = z.infer<typeof getUsersParamsSchema>;

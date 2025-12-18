@@ -13,6 +13,10 @@ export interface GetUserRequest {
   id: string;
 }
 
+export interface GetUsersResponse {
+  users: IUser[];
+}
+
 export interface RegisterRequest {
   name: string;
   email: string;
@@ -38,6 +42,19 @@ export const userService = {
       name: user.name,
       email: user.email,
       role: user.role,
+    };
+  },
+
+  getUsers: async (): Promise<GetUsersResponse> => {
+    // Get all users where role is not 'admin'
+    const users = await User.find({ role: { $ne: "admin" } });
+    return {
+      users: users.map((user) => ({
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      })),
     };
   },
 

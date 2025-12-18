@@ -14,6 +14,18 @@ export const userHandlers = {
     }
   },
 
+  GetUsers: async (
+    call: grpc.ServerUnaryCall<any, any>,
+    callback: grpc.sendUnaryData<any>
+  ) => {
+    try {
+      const result = await userService.getUsers();
+      callback(null, result);
+    } catch (error) {
+      callback(error as Error, null);
+    }
+  },
+
   Register: async (
     call: grpc.ServerUnaryCall<any, any>,
     callback: grpc.sendUnaryData<any>
