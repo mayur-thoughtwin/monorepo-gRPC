@@ -14,6 +14,7 @@ export interface CreateTaskRequest {
   title: string;
   description: string;
   author: string;
+  authorName: string;
   status?: string;
 }
 

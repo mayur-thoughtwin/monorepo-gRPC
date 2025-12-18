@@ -1,4 +1,5 @@
 import { Task } from "@repo/db";
+import { kafkaProducer, TOPICS, TaskCreatedPayload } from "@repo/kafka";
 
 export type TaskStatus = "pending" | "inprogress" | "completed";
 
@@ -16,6 +17,7 @@ export interface CreateTaskRequest {
   title: string;
   description: string;
   author: string;
+  authorName: string;
   status: TaskStatus;
 }
 
@@ -49,10 +51,36 @@ export const taskService = {
 
     await newTask.save();
 
+    const taskId = newTask._id.toString();
+
+    // Publish TASK_CREATED event to Kafka for notification service
+    try {
+      const taskCreatedPayload: TaskCreatedPayload = {
+        taskId,
+        title: request.title,
+        userId: request.author,
+        userName: request.authorName || "Unknown User",
+        createdAt: newTask.createdAt?.toISOString() || new Date().toISOString(),
+      };
+
+      await kafkaProducer.send(
+        TOPICS.TASK.CREATED,
+        "TASK_CREATED",
+        taskCreatedPayload,
+        "task-service",
+        taskId
+      );
+
+      console.log(`📤 TASK_CREATED event published for task: ${taskId}`);
+    } catch (kafkaError) {
+      // Log error but don't fail the task creation
+      console.error("❌ Failed to publish TASK_CREATED event:", kafkaError);
+    }
+
     return {
       success: true,
       message: "Task created successfully",
-      taskId: newTask._id.toString(),
+      taskId,
     };
   },
 

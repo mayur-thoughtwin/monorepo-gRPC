@@ -7,3 +7,6 @@ export type { WelcomeTemplateData } from "./welcome.template";
 export { userUpdatedTemplate, UserUpdatedTemplate } from "./user-updated.template";
 export type { UserUpdatedTemplateData } from "./user-updated.template";
 
+export { taskCreatedTemplate, TaskCreatedTemplate } from "./task-created.template";
+export type { TaskCreatedTemplateData } from "./task-created.template";
+

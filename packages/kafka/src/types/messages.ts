@@ -40,6 +40,7 @@ export interface TaskCreatedPayload {
   taskId: string;
   title: string;
   userId: string;
+  userName: string;
   createdAt: string;
 }
 

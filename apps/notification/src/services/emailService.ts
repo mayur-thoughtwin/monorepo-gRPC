@@ -2,6 +2,7 @@ import nodemailer, { Transporter } from "nodemailer";
 import { emailConfig } from "../config/email.config";
 import { welcomeTemplate } from "../templates/welcome.template";
 import { userUpdatedTemplate, UserUpdatedTemplateData } from "../templates/user-updated.template";
+import { taskCreatedTemplate, TaskCreatedTemplateData } from "../templates/task-created.template";
 
 interface SendMailOptions {
   to: string;
@@ -90,6 +91,37 @@ class EmailService {
 
     const result = await this.sendEmail({
       to: email,
+      subject: content.subject,
+      text: content.text,
+      html: content.html,
+    });
+
+    return result.success;
+  }
+
+  async sendTaskCreatedEmail(
+    adminEmail: string,
+    adminName: string,
+    taskInfo: {
+      taskId: string;
+      taskName: string;
+      userId: string;
+      userName: string;
+      createdAt: string;
+    }
+  ): Promise<boolean> {
+    const data: TaskCreatedTemplateData = {
+      adminName,
+      taskId: taskInfo.taskId,
+      taskName: taskInfo.taskName,
+      userId: taskInfo.userId,
+      userName: taskInfo.userName,
+      createdAt: taskInfo.createdAt,
+    };
+    const content = taskCreatedTemplate.getContent(data);
+
+    const result = await this.sendEmail({
+      to: adminEmail,
       subject: content.subject,
       text: content.text,
       html: content.html,

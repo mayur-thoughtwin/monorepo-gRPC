@@ -8,6 +8,7 @@ export const taskController = {
       // Request body is already validated by zod middleware
       const { title, description, status } = req.body as CreateTaskInput["body"];
       const author = (req as any).user?.userId;
+      const authorName = (req as any).user?.name || "Unknown User";
 
       if (!author) {
         return res.status(401).json({ error: "User not authenticated" });
@@ -17,6 +18,7 @@ export const taskController = {
         title,
         description,
         author,
+        authorName,
         status: status || "pending",
       });
 

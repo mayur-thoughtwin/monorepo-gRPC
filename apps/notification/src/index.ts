@@ -1,4 +1,5 @@
 import { startUserConsumer, stopUserConsumer } from "./consumers/userConsumer";
+import { startTaskConsumer, stopTaskConsumer } from "./consumers/taskConsumer";
 import { emailService } from "./services/emailService";
 
 async function main(): Promise<void> {
@@ -8,8 +9,9 @@ async function main(): Promise<void> {
     // Initialize email service
     await emailService.initialize();
     
-    // Start Kafka consumer for user events
+    // Start Kafka consumers for different event types
     await startUserConsumer();
+    await startTaskConsumer();
 
     console.log("✅ Notification service running and listening for events!");
     
@@ -17,6 +19,10 @@ async function main(): Promise<void> {
     console.log("📋 Configuration:");
     console.log(`   - Using new Kafka API: ${process.env.USE_NEW_KAFKA_API === "true"}`);
     console.log(`   - Email service status: ${emailService.getStatus().ready ? "Ready" : "Not ready"}`);
+    console.log(`   - Admin email: ${process.env.ADMIN_EMAIL || "admin12@yopmail.com"}`);
+    console.log("📋 Active consumers:");
+    console.log("   - User events consumer");
+    console.log("   - Task events consumer");
   } catch (error) {
     console.error("❌ Failed to start notification service:", error);
     process.exit(1);
@@ -29,6 +35,7 @@ async function shutdown(signal: string): Promise<void> {
   
   try {
     await stopUserConsumer();
+    await stopTaskConsumer();
     console.log("✅ Graceful shutdown completed");
     process.exit(0);
   } catch (error) {
