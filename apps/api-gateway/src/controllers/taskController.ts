@@ -1,18 +1,16 @@
 import { Request, Response } from "express";
 import { taskService } from "../services/taskService";
+import { CreateTaskInput, UpdateTaskInput, GetTaskParamsInput } from "../validation";
 
 export const taskController = {
   createTask: async (req: Request, res: Response) => {
     try {
-      const { title, description, status } = req.body;
+      // Request body is already validated by zod middleware
+      const { title, description, status } = req.body as CreateTaskInput["body"];
       const author = (req as any).user?.userId;
 
       if (!author) {
         return res.status(401).json({ error: "User not authenticated" });
-      }
-
-      if (!title || !description) {
-        return res.status(400).json({ error: "Title and description are required" });
       }
 
       const result = await taskService.createTask({
@@ -31,7 +29,8 @@ export const taskController = {
 
   getTask: async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
+      // Params are already validated by zod middleware
+      const { id } = req.params as GetTaskParamsInput["params"];
       const task = await taskService.getTask(id);
       res.json(task);
     } catch (error) {
@@ -68,8 +67,9 @@ export const taskController = {
 
   updateTask: async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
-      const { title, description, status } = req.body;
+      // Params and body are already validated by zod middleware
+      const { id } = req.params as UpdateTaskInput["params"];
+      const { title, description, status } = req.body as UpdateTaskInput["body"];
 
       const result = await taskService.updateTask({
         id,
@@ -87,7 +87,8 @@ export const taskController = {
 
   deleteTask: async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
+      // Params are already validated by zod middleware
+      const { id } = req.params as GetTaskParamsInput["params"];
       const result = await taskService.deleteTask(id);
       res.json(result);
     } catch (error) {
@@ -96,4 +97,3 @@ export const taskController = {
     }
   },
 };
-

@@ -1,31 +1,14 @@
 import { Request, Response } from "express";
 import { authService } from "../services/authService";
 import { generateToken, generateRefreshToken, JwtPayload } from "../middleware/authMiddleware";
+import { RegisterInput, LoginInput } from "../validation";
 
 export const authController = {
   // Register a new user
   register: async (req: Request, res: Response) => {
     try {
-      const { name, email, password, role } = req.body;
-
-      // Validate required fields
-      if (!name || !email || !password) {
-        res.status(400).json({ error: "Name, email, and password are required" });
-        return;
-      }
-
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        res.status(400).json({ error: "Invalid email format" });
-        return;
-      }
-
-      // Validate password strength
-      if (password.length < 6) {
-        res.status(400).json({ error: "Password must be at least 6 characters" });
-        return;
-      }
+      // Request body is already validated by zod middleware
+      const { name, email, password, role } = req.body as RegisterInput["body"];
 
       const result = await authService.register({ name, email, password, role });
 
@@ -48,13 +31,8 @@ export const authController = {
   // Login user
   login: async (req: Request, res: Response) => {
     try {
-      const { email, password } = req.body;
-
-      // Validate required fields
-      if (!email || !password) {
-        res.status(400).json({ error: "Email and password are required" });
-        return;
-      }
+      // Request body is already validated by zod middleware
+      const { email, password } = req.body as LoginInput["body"];
 
       const result = await authService.login({ email, password });
 
@@ -110,4 +88,3 @@ export const authController = {
     }
   },
 };
-
