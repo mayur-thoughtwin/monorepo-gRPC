@@ -1,21 +1,24 @@
 import { Schema } from "mongoose";
 declare const Task: import("mongoose").Model<{
-    description: string;
     title: string;
+    description: string;
     author: import("mongoose").Types.ObjectId;
     status: "pending" | "inprogress" | "completed";
+    notifiedToAdmin: boolean;
 } & import("mongoose").DefaultTimestampProps, {}, {}, {}, import("mongoose").Document<unknown, {}, {
-    description: string;
     title: string;
+    description: string;
     author: import("mongoose").Types.ObjectId;
     status: "pending" | "inprogress" | "completed";
+    notifiedToAdmin: boolean;
 } & import("mongoose").DefaultTimestampProps, {}, {
     timestamps: true;
 }> & {
-    description: string;
     title: string;
+    description: string;
     author: import("mongoose").Types.ObjectId;
     status: "pending" | "inprogress" | "completed";
+    notifiedToAdmin: boolean;
 } & import("mongoose").DefaultTimestampProps & {
     _id: import("mongoose").Types.ObjectId;
 } & {
@@ -23,22 +26,25 @@ declare const Task: import("mongoose").Model<{
 }, Schema<any, import("mongoose").Model<any, any, any, any, any, any>, {}, {}, {}, {}, {
     timestamps: true;
 }, {
-    description: string;
     title: string;
+    description: string;
     author: import("mongoose").Types.ObjectId;
     status: "pending" | "inprogress" | "completed";
+    notifiedToAdmin: boolean;
 } & import("mongoose").DefaultTimestampProps, import("mongoose").Document<unknown, {}, import("mongoose").FlatRecord<{
-    description: string;
     title: string;
+    description: string;
     author: import("mongoose").Types.ObjectId;
     status: "pending" | "inprogress" | "completed";
+    notifiedToAdmin: boolean;
 } & import("mongoose").DefaultTimestampProps>, {}, import("mongoose").ResolveSchemaOptions<{
     timestamps: true;
 }>> & import("mongoose").FlatRecord<{
-    description: string;
     title: string;
+    description: string;
     author: import("mongoose").Types.ObjectId;
     status: "pending" | "inprogress" | "completed";
+    notifiedToAdmin: boolean;
 } & import("mongoose").DefaultTimestampProps> & {
     _id: import("mongoose").Types.ObjectId;
 } & {

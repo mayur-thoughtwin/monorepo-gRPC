@@ -19,6 +19,11 @@ const taskSchema = new Schema({
         required: true,
         enum: ["pending", "inprogress", "completed"],
     },
+    notifiedToAdmin: {
+        type: Boolean,
+        required: true,
+        default: false,
+    },
 }, { timestamps: true });
 
 const Task = model("Task", taskSchema);
