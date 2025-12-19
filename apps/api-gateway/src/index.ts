@@ -20,6 +20,16 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
+// Global 404 handler - catches all undefined routes
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+    path: req.originalUrl,
+    method: req.method
+  });
+});
+
 app.listen(3000, () => {
   console.log("API Gateway running on port 3000");
 });
