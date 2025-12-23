@@ -18,8 +18,13 @@ const userProto = grpc.loadPackageDefinition(packageDefinition).user as grpc.Grp
 // gRPC client
 const UserService = userProto.UserService as grpc.ServiceClientConstructor;
 
+// Use environment variable for service URL (Docker networking)
+// Default to localhost for local development
+const USER_SERVICE_URL = process.env.USER_SERVICE_URL || "localhost:8000";
+
+console.log(`📡 Connecting to User Service at: ${USER_SERVICE_URL}`);
+
 export const userClient = new UserService(
-  "localhost:8000",
+  USER_SERVICE_URL,
   grpc.credentials.createInsecure()
 );
-

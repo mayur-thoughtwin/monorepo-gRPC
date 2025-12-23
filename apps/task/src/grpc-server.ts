@@ -10,19 +10,24 @@ const grpcObj = grpc.loadPackageDefinition(packageDef) as any;
 
 const taskPackage = grpcObj.task;
 
+// Use environment variable for port (Docker compatibility)
+// Default to 8001 for local development
+const GRPC_PORT = process.env.GRPC_PORT || "8001";
+
 export function startGrpcServer() {
   const server = new grpc.Server();
   server.addService(taskPackage.TaskService.service, taskHandlers);
 
+  // Bind to 0.0.0.0 to accept connections from any network interface (required for Docker)
   server.bindAsync(
-    "0.0.0.0:8001",
+    `0.0.0.0:${GRPC_PORT}`,
     grpc.ServerCredentials.createInsecure(),
     (err, port) => {
       if (err) {
-        console.error("Failed to start gRPC server:", err);
+        console.error("❌ Failed to start gRPC server:", err);
         return;
       }
-      console.log(`gRPC Task Service running on port ${port}`);
+      console.log(`✅ gRPC Task Service running on port ${port}`);
     }
   );
 }

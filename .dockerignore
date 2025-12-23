@@ -1,0 +1,49 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+**/dist
+**/.tsbuildinfo
+
+# Development files
+.git
+.gitignore
+.vscode
+.idea
+*.md
+!packages/proto/*.proto
+
+# Environment files (use docker-compose for config)
+.env
+.env.*
+!.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+**/__tests__
+**/*.test.ts
+**/*.spec.ts
+coverage
+
+# Docker files (avoid infinite loop)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Turborepo
+.turbo
+
+# IDE
+*.swp
+*.swo
+

@@ -18,8 +18,13 @@ const taskProto = grpc.loadPackageDefinition(packageDefinition).task as grpc.Grp
 // gRPC client
 const TaskService = taskProto.TaskService as grpc.ServiceClientConstructor;
 
+// Use environment variable for service URL (Docker networking)
+// Default to localhost for local development
+const TASK_SERVICE_URL = process.env.TASK_SERVICE_URL || "localhost:8001";
+
+console.log(`📡 Connecting to Task Service at: ${TASK_SERVICE_URL}`);
+
 export const taskClient = new TaskService(
-  "localhost:8001",
+  TASK_SERVICE_URL,
   grpc.credentials.createInsecure()
 );
-
