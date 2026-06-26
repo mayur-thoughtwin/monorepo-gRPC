@@ -12,6 +12,7 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     }
+    
   },
   "dependencies": {
     "kafkajs": "^2.2.4"
